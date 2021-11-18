@@ -17,9 +17,7 @@ start_date = st.slider(
 )
 
 # Retrieving tickers data
-tl = pd.read_csv(
-    "https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt"
-)
+tl = helper.load_tickers()
 defaultTickerIndex = tl.index[tl["ABT"] == "AAPL"][0]
 tickerSymbol = st.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
 tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
@@ -27,7 +25,7 @@ tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
 # Ticker information
 col1, col2 = st.columns(2)
 with col1:
-    string_logo = "<img src=%s>" % tickerData.info["logo_url"]
+    string_logo = "<img src=%s width='50' height='50'>" % tickerData.info["logo_url"]
     st.markdown(string_logo, unsafe_allow_html=True)
 
 with col2:
@@ -55,29 +53,24 @@ data = helper.load_data(tickerSymbol, start_date, end_date)
 st.header("**Ticker data**")
 helper.plot_raw_data(data)
 
-earlyiestExpDate = datetime.date.today() + datetime.timedelta(weeks=3)
+# Options data
+exps = tickerData.options
+expDate = st.selectbox("Expiry Date", exps, index=3)
 optionsX = pd.DataFrame()
-exps = (e for e in tickerData.options if e > str(earlyiestExpDate))
-try:
-    for e in exps:
-        opt = tickerData.option_chain(e)
-        opt = pd.DataFrame().append(opt.calls).append(opt.puts)
-        opt["expirationDate"] = e
-        optionsX = optionsX.append(opt, ignore_index=True)
-except:
-    pass
+opt = tickerData.option_chain(expDate)
+opt = pd.DataFrame().append(opt.calls).append(opt.puts)
+optionsX = optionsX.append(opt, ignore_index=True)
 
 
 # Options data
 opt_cols = [
     "contractSymbol",
-    "expirationDate",
     "strike",
     "lastPrice",
     "openInterest",
     "impliedVolatility",
 ]
-filter = (optionsX["impliedVolatility"] < 1) & (optionsX["lastPrice"] > 0.01)
+filter = (optionsX["impliedVolatility"] < 1) & (optionsX["lastPrice"] > 0.1)
 optionsY = optionsX[filter]
 optionsY = optionsY[opt_cols]
 st.header("**Options data**")

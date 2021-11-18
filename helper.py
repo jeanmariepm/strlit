@@ -12,6 +12,13 @@ def load_data(ticker, start, end):
     return data
 
 
+@st.cache
+def load_tickers():
+    return pd.read_csv(
+        "https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt"
+    )
+
+
 def plot_raw_data(data):
     fig = go.Figure()
     fig.add_trace(go.Scatter(x=data["Date"], y=data["Open"], name="stock_open"))
