@@ -14,9 +14,11 @@ def load_data(ticker, start, end):
 
 @st.cache
 def load_tickers():
-    return pd.read_csv(
-        "https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt"
-    )
+    table = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+    mycols = table[0][["Symbol"]]
+    etfs = ["QQQ", "SPY"]
+    etf_dict = [{"Symbol": etf} for etf in etfs]
+    return mycols.append(etf_dict, ignore_index=True)
 
 
 def plot_raw_data(data):

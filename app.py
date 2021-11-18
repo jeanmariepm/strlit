@@ -18,14 +18,17 @@ start_date = st.slider(
 
 # Retrieving tickers data
 tl = helper.load_tickers()
-defaultTickerIndex = tl.index[tl["ABT"] == "AAPL"][0]
+defaultTickerIndex = tl.index[tl["Symbol"] == "AAPL"][0]
 tickerSymbol = st.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
 tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
 
 # Ticker information
 col1, col2 = st.columns(2)
 with col1:
-    string_logo = "<img src=%s width='50' height='50'>" % tickerData.info["logo_url"]
+    logo_name = tickerData.info["logo_url"]
+    if not logo_name:
+        logo_name = "No image"
+    string_logo = f"<img src={logo_name} width='50' height='50' >"
     st.markdown(string_logo, unsafe_allow_html=True)
 
 with col2:
@@ -42,8 +45,14 @@ attributes = [
     "trailingPE",
 ]
 for ndx, attribute in enumerate(attributes):
+    if attribute not in tickerData.info:
+        tickerData.info[attribute] = None
     with cols[ndx % 3]:
-        st.metric(f"{attribute}", f"{tickerData.info[attribute]:,.3f}")
+        metric = tickerData.info[attribute]
+        if metric:
+            st.metric(f"{attribute}", f"{metric:,.3f}")
+        else:
+            st.metric(f"{attribute}", f"{metric}")
 
 # miscInfo = tickerData.info.keys()
 # st.info(f"Misc Info: {miscInfo}")
@@ -82,7 +91,7 @@ st.markdown(
     """
 **About**
 - App source code at https://github.com/jeanmariepm/strlit.git
-- Built in `Python` using `streamlit`,`yfinance`, `cufflinks`, `pandas` and `datetime`
+- Built in `Python` using `streamlit`,`yfinance`, `plotly`, `pandas` and more
 """
 )
 st.write("---")
