@@ -1,37 +1,28 @@
 import streamlit as st
 import yfinance as yf
 import pandas as pd
-import cufflinks as cf
 import datetime
+from plotly import graph_objs as go
+import helper
 
-# App title
-st.markdown(
-    """
-# Stock Price App
-Shown are the stock price data for query companies!
 
-**About**
-- App source code at https://github.com/jeanmariepm/strlit.git
-- Built in `Python` using `streamlit`,`yfinance`, `cufflinks`, `pandas` and `datetime`
-"""
+# st.subheader("Query parameters")
+end_date = datetime.date.today() - datetime.timedelta(days=1)
+start_date = st.slider(
+    "Start Data?",
+    min_value=datetime.date(2010, 1, 1),
+    max_value=end_date,
+    value=end_date - datetime.timedelta(days=365),
+    format="MM/DD/YYYY",
 )
-st.write("---")
-
-# Sidebar
-st.sidebar.subheader("Query parameters")
-start_date = st.sidebar.date_input("Start date", datetime.date(2019, 1, 1))
-end_date = st.sidebar.date_input("End date", datetime.date.today())
 
 # Retrieving tickers data
 tl = pd.read_csv(
     "https://raw.githubusercontent.com/dataprofessor/s-and-p-500-companies/master/data/constituents_symbols.txt"
 )
 defaultTickerIndex = tl.index[tl["ABT"] == "AAPL"][0]
-tickerSymbol = st.sidebar.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
+tickerSymbol = st.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
 tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
-tickerDf = tickerData.history(
-    period="1d", start=start_date, end=end_date
-)  # get the historical prices for this ticker
 
 # Ticker information
 col1, col2 = st.columns(2)
@@ -60,19 +51,9 @@ for ndx, attribute in enumerate(attributes):
 # st.info(f"Misc Info: {miscInfo}")
 
 # Ticker data
+data = helper.load_data(tickerSymbol, start_date, end_date)
 st.header("**Ticker data**")
-st.line_chart(tickerDf[["Close"]])
-
-# Bollinger bands
-# st.header("**Bollinger Bands**")
-# qf = cf.QuantFig(tickerDf, title="First Quant Figure", legend="top", name="GS")
-# qf.add_bollinger_bands()
-# fig = qf.iplot(asFigure=True)
-# st.plotly_chart(fig)
-
-####
-# st.write('---')
-# st.write(tickerData.info)
+helper.plot_raw_data(data)
 
 earlyiestExpDate = datetime.date.today() + datetime.timedelta(weeks=3)
 optionsX = pd.DataFrame()
@@ -101,3 +82,14 @@ optionsY = optionsX[filter]
 optionsY = optionsY[opt_cols]
 st.header("**Options data**")
 st.write(optionsY)
+
+
+# App title
+st.markdown(
+    """
+**About**
+- App source code at https://github.com/jeanmariepm/strlit.git
+- Built in `Python` using `streamlit`,`yfinance`, `cufflinks`, `pandas` and `datetime`
+"""
+)
+st.write("---")
