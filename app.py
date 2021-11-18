@@ -44,6 +44,9 @@ attributes = [
     "grossProfits",
     "trailingPE",
 ]
+if "currentPrice" not in tickerData.info:
+    tickerData.info["currentPrice"] = tickerData.info["ask"]
+
 for ndx, attribute in enumerate(attributes):
     if attribute not in tickerData.info:
         tickerData.info[attribute] = None
@@ -59,30 +62,29 @@ for ndx, attribute in enumerate(attributes):
 
 # Ticker data
 data = helper.load_data(tickerSymbol, start_date, end_date)
-st.header("**Ticker data**")
 helper.plot_raw_data(data)
 
 # Options data
+st.header("**Options chain**")
 exps = tickerData.options
-expDate = st.selectbox("Expiry Date", exps, index=3)
-optionsX = pd.DataFrame()
-opt = tickerData.option_chain(expDate)
-opt = pd.DataFrame().append(opt.calls).append(opt.puts)
-optionsX = optionsX.append(opt, ignore_index=True)
+col1, col2 = st.columns(2)
+with col1:
+    expDate = st.selectbox("Expiry Date", exps, index=3)
+with col2:
+    putCall = st.selectbox("Put/Call", ["Put", "Call"])
+options = helper.getOptions(tickerSymbol, expDate, putCall)
 
 
 # Options data
 opt_cols = [
-    "contractSymbol",
     "strike",
     "lastPrice",
     "openInterest",
     "impliedVolatility",
 ]
-filter = (optionsX["impliedVolatility"] < 1) & (optionsX["lastPrice"] > 0.1)
-optionsY = optionsX[filter]
+filter = (options["impliedVolatility"] < 1) & (options["lastPrice"] > 0.1)
+optionsY = options[filter]
 optionsY = optionsY[opt_cols]
-st.header("**Options data**")
 st.write(optionsY)
 
 
@@ -90,8 +92,9 @@ st.write(optionsY)
 st.markdown(
     """
 **About**
-- App source code at https://github.com/jeanmariepm/strlit.git
+- App source code <a href='https://github.com/jeanmariepm/strlit.git'>here </a>
 - Built in `Python` using `streamlit`,`yfinance`, `plotly`, `pandas` and more
-"""
+""",
+    unsafe_allow_html=True,
 )
 st.write("---")

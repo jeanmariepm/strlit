@@ -1,3 +1,4 @@
+from requests.api import options
 import streamlit as st
 import yfinance as yf
 import pandas as pd
@@ -10,6 +11,18 @@ def load_data(ticker, start, end):
     data = yf.download(ticker, start, end)
     data.reset_index(inplace=True)
     return data
+
+
+@st.cache
+def getOptions(tickerSymbol, expDate, putCall):
+    options = pd.DataFrame()
+    opt = yf.Ticker(tickerSymbol).option_chain(expDate)
+    if putCall == "Put":
+        opt = pd.DataFrame().append(opt.puts)
+    else:
+        opt = pd.DataFrame().append(opt.calls)
+    options = options.append(opt, ignore_index=True)
+    return options
 
 
 @st.cache
