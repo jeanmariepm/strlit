@@ -6,21 +6,28 @@ from plotly import graph_objs as go
 import helper
 
 
-# st.subheader("Query parameters")
-end_date = datetime.date.today() - datetime.timedelta(days=1)
-start_date = st.slider(
-    "Start Data?",
-    min_value=datetime.date(2010, 1, 1),
-    max_value=end_date,
-    value=end_date - datetime.timedelta(days=365),
-    format="MM/DD/YYYY",
-)
+col1, col2 = st.columns(2)
+with col2:
+    end_date = datetime.date.today() - datetime.timedelta(days=1)
+    start_date = st.slider(
+        "Start Data?",
+        min_value=datetime.date(2010, 1, 1),
+        max_value=end_date,
+        value=end_date - datetime.timedelta(days=365),
+        format="MM/DD/YYYY",
+    )
 
-# Retrieving tickers data
-tl = helper.load_tickers()
-defaultTickerIndex = tl.index[tl["Symbol"] == "AAPL"][0]
-tickerSymbol = st.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
-tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
+with col1:
+    # Retrieving tickers data
+    # tl = helper.load_tickers()
+    # defaultTickerIndex = tl.index[tl["Symbol"] == "AAPL"][0]
+    # ickerSymbol = st.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
+    tickerSymbol = st.text_input("Stock ticker", value="AAPL", max_chars=None)
+    tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
+    if "shortName" not in tickerData.info:
+        st.write("Invalid ticker symbol... try another")
+        raise helper.StopExecution
+
 
 # Ticker information
 col1, col2 = st.columns(2)

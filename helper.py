@@ -46,3 +46,7 @@ def plot_raw_data(data):
         title_text="Time Series data with Rangeslider", xaxis_rangeslider_visible=True
     )
     st.plotly_chart(fig)
+
+
+class StopExecution(Exception):
+    pass
