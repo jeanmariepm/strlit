@@ -46,6 +46,7 @@ attributes = [
 ]
 if "currentPrice" not in tickerData.info:
     tickerData.info["currentPrice"] = tickerData.info["ask"]
+currentPrice = float(tickerData.info["currentPrice"])
 
 for ndx, attribute in enumerate(attributes):
     if attribute not in tickerData.info:
@@ -67,23 +68,33 @@ helper.plot_raw_data(data)
 # Options data
 st.header("**Options chain**")
 exps = tickerData.options
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     expDate = st.selectbox("Expiry Date", exps, index=3)
 with col2:
     putCall = st.selectbox("Put/Call", ["Put", "Call"])
-options = helper.getOptions(tickerSymbol, expDate, putCall)
+with col3:
+    roi = st.slider("ROI", min_value=1, max_value=35, value=15, step=1)
+options = helper.getOptions(tickerSymbol, expDate, putCall, currentPrice)
 
 
 # Options data
 opt_cols = [
     "strike",
     "lastPrice",
-    "openInterest",
+    "ROI",
     "impliedVolatility",
+    "openInterest",
 ]
-filter = (options["impliedVolatility"] < 1) & (options["lastPrice"] > 0.1)
-optionsY = options[filter]
+roiFilter = options["ROI"] >= roi
+putFilter = options["strike"] < 1.1 * currentPrice
+callFilter = options["strike"] > 0.9 * currentPrice
+
+optionsY = options[roiFilter]
+if putCall == "Put":
+    optionsY = optionsY[putFilter]
+else:
+    optionsY = optionsY[callFilter]
 optionsY = optionsY[opt_cols]
 st.write(optionsY)
 

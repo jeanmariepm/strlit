@@ -14,7 +14,7 @@ def load_data(ticker, start, end):
 
 
 @st.cache
-def getOptions(tickerSymbol, expDate, putCall):
+def getOptions(tickerSymbol, expDate, putCall, currentPeice):
     options = pd.DataFrame()
     opt = yf.Ticker(tickerSymbol).option_chain(expDate)
     if putCall == "Put":
@@ -22,6 +22,10 @@ def getOptions(tickerSymbol, expDate, putCall):
     else:
         opt = pd.DataFrame().append(opt.calls)
     options = options.append(opt, ignore_index=True)
+    year_fraction = (
+        datetime.datetime.strptime(expDate, "%Y-%m-%d") - datetime.datetime.now()
+    ).days / 365
+    options["ROI"] = 100 * options["lastPrice"] / (currentPeice * year_fraction)
     return options
 
 
