@@ -2,10 +2,10 @@ import streamlit as st
 import yfinance as yf
 import pandas as pd
 import datetime
-from plotly import graph_objs as go
+
 import helper
 
-
+st.title("Stocks with VIP")
 col1, col2 = st.columns(2)
 with col2:
     end_date = datetime.date.today() - datetime.timedelta(days=1)
@@ -13,7 +13,7 @@ with col2:
         "Start Data?",
         min_value=datetime.date(2010, 1, 1),
         max_value=end_date,
-        value=end_date - datetime.timedelta(days=365),
+        value=end_date - datetime.timedelta(days=3*365),
         format="MM/DD/YYYY",
     )
 
@@ -42,7 +42,7 @@ with col2:
     string_name = tickerData.info["longName"]
     st.header("**%s**" % string_name)
 
-cols = st.columns(3)
+cols = st.columns(6)
 attributes = [
     "targetMedianPrice",
     "currentPrice",
@@ -58,19 +58,19 @@ currentPrice = float(tickerData.info["currentPrice"])
 for ndx, attribute in enumerate(attributes):
     if attribute not in tickerData.info:
         tickerData.info[attribute] = None
-    with cols[ndx % 3]:
+    with cols[ndx % len(cols)]:
         metric = tickerData.info[attribute]
-        if metric:
-            st.metric(f"{attribute}", f"{metric:,.3f}")
-        else:
-            st.metric(f"{attribute}", f"{metric}")
+        metric = metric / 1000000 if metric and metric > 1000000 else metric
+        attribute[:15]
+        f"{metric:,.3f}" if metric else f"{metric}"
 
 # miscInfo = tickerData.info.keys()
 # st.info(f"Misc Info: {miscInfo}")
 
 # Ticker data
+st.subheader('Closing price trend')
 data = helper.load_data(tickerSymbol, start_date, end_date)
-helper.plot_raw_data(data)
+helper.plot_data(data)
 
 # Options data
 st.header("**Options chain**")

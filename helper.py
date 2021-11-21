@@ -4,6 +4,8 @@ import yfinance as yf
 import pandas as pd
 import datetime
 from plotly import graph_objs as go
+from fbprophet import Prophet
+from fbprophet.plot import plot_plotly
 
 
 @st.cache
@@ -23,25 +25,42 @@ def getOptions(tickerSymbol, expDate, putCall, currentPeice):
         opt = pd.DataFrame().append(opt.calls)
     options = options.append(opt, ignore_index=True)
     year_fraction = (
-        datetime.datetime.strptime(expDate, "%Y-%m-%d") - datetime.datetime.now()
+        datetime.datetime.strptime(
+            expDate, "%Y-%m-%d") - datetime.datetime.now()
     ).days / 365
-    options["ROI"] = 100 * options["lastPrice"] / (currentPeice * year_fraction)
+    options["ROI"] = 100 * options["lastPrice"] / \
+        (currentPeice * year_fraction)
     return options
 
 
 @st.cache
 def load_tickers():
-    table = pd.read_html("https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
+    table = pd.read_html(
+        "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")
     mycols = table[0][["Symbol"]]
     etfs = ["QQQ", "SPY"]
     etf_dict = [{"Symbol": etf} for etf in etfs]
     return mycols.append(etf_dict, ignore_index=True)
 
 
+def plot_data(data):
+    # Predict forecast with Prophet.
+    df_train = data[['Date', 'Close']]
+    df_train = df_train.rename(columns={"Date": "ds", "Close": "y"})
+    prophet = Prophet()
+    prophet.fit(df_train)
+    future = prophet.make_future_dataframe(periods=90)
+    forecast = prophet.predict(future)
+    fig1 = plot_plotly(prophet, forecast)
+    st.plotly_chart(fig1)
+
+
 def plot_raw_data(data):
     fig = go.Figure()
-    fig.add_trace(go.Scatter(x=data["Date"], y=data["Open"], name="stock_open"))
-    fig.add_trace(go.Scatter(x=data["Date"], y=data["Close"], name="stock_close"))
+    fig.add_trace(go.Scatter(x=data["Date"],
+                  y=data["Open"], name="stock_open"))
+    fig.add_trace(go.Scatter(x=data["Date"],
+                  y=data["Close"], name="stock_close"))
     fig.layout.update(
         title_text="Time Series data with Rangeslider", xaxis_rangeslider_visible=True
     )
