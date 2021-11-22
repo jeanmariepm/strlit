@@ -9,6 +9,11 @@ watchdog = "*"
 yfinance = "*"
 plotly = "*"
 pystan = "~=2.14"
+py-vollib-vectorized = "*"
+
+[requires]
+python_version = "3.6"
+
 
 [dev-packages]
 autopep8 = "*"
