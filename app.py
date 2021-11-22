@@ -4,6 +4,7 @@ import pandas as pd
 import datetime
 
 import helper
+import tradier
 
 st.title("Stocks with VIP")
 col1, col2 = st.columns(2)
@@ -79,12 +80,12 @@ col1, col2, col3 = st.columns(3)
 with col1:
     expDate = st.selectbox("Expiry Date", exps, index=3)
 with col2:
-    putCall = st.selectbox("Put/Call", ["Put", "Call"])
+    putCall = st.selectbox("Put/Call", ["put", "call"])
 with col3:
-    defaultDelta = 50  # 35 if putCall == 'Call' else 25
+    defaultDelta = 50  # 35 if putCall == 'call' else 25
     delta = st.slider("delta", min_value=0, max_value=100,
                       value=defaultDelta, step=5)
-options = helper.getOptions(tickerSymbol, expDate, putCall, currentPrice)
+options = tradier.getOptions(tickerSymbol, expDate, putCall)
 
 
 # Options data
@@ -92,7 +93,6 @@ opt_cols = [
     "strike",
     "lastPrice",
     'delta',
-    "impliedVolatility",
     "openInterest",
 ]
 
