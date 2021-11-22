@@ -6,6 +6,7 @@ import datetime
 from plotly import graph_objs as go
 from fbprophet import Prophet
 from fbprophet.plot import plot_plotly
+from py_vollib_vectorized import price_dataframe, get_all_greeks
 
 
 @st.cache
@@ -28,12 +29,19 @@ def getOptions(tickerSymbol, expDate, putCall, currentPeice):
         datetime.datetime.strptime(
             expDate, "%Y-%m-%d") - datetime.datetime.now()
     ).days / 365
-    options["ROI"] = 100 * options["lastPrice"] / \
-        (currentPeice * year_fraction)
+    options['Flag'] = putCall[0].lower()
+    options['S'] = currentPeice
+    options['K'] = options['strike']
+    options['T'] = year_fraction
+    options['R'] = 0.04
+    options['IV'] = options['impliedVolatility']
+    result = price_dataframe(options, flag_col='Flag', underlying_price_col='S', strike_col='K', annualized_tte_col='T',
+                             riskfree_rate_col='R', sigma_col='IV', model='black_scholes', inplace=False)
+    options['delta'] = abs(result['delta'])*100
     return options
 
 
-@st.cache
+@ st.cache
 def load_tickers():
     table = pd.read_html(
         "https://en.wikipedia.org/wiki/List_of_S%26P_500_companies")

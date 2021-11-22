@@ -81,7 +81,9 @@ with col1:
 with col2:
     putCall = st.selectbox("Put/Call", ["Put", "Call"])
 with col3:
-    roi = st.slider("ROI", min_value=1, max_value=35, value=15, step=1)
+    defaultDelta = 50  # 35 if putCall == 'Call' else 25
+    delta = st.slider("delta", min_value=0, max_value=100,
+                      value=defaultDelta, step=5)
 options = helper.getOptions(tickerSymbol, expDate, putCall, currentPrice)
 
 
@@ -89,21 +91,22 @@ options = helper.getOptions(tickerSymbol, expDate, putCall, currentPrice)
 opt_cols = [
     "strike",
     "lastPrice",
-    "ROI",
+    'delta',
     "impliedVolatility",
     "openInterest",
 ]
-roiFilter = options["ROI"] >= roi
-putFilter = options["strike"] < 1.1 * currentPrice
-callFilter = options["strike"] > 0.9 * currentPrice
 
-optionsY = options[roiFilter]
 if putCall == "Put":
-    optionsY = optionsY[putFilter]
+    putFilter = options["delta"] > delta
+    options = options[putFilter]
 else:
-    optionsY = optionsY[callFilter]
-optionsY = optionsY[opt_cols]
-st.write(optionsY)
+    callFilter = options["delta"] < delta
+    options = options[callFilter]
+priceFilter = (options["strike"] > 0.5 *
+               currentPrice) & (options["strike"] < 1.5 * currentPrice)
+options = options[priceFilter]
+options = options[opt_cols]
+st.write(options)
 
 
 # App title
