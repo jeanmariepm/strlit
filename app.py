@@ -96,12 +96,8 @@ opt_cols = [
     "openInterest",
 ]
 
-if putCall == "Put":
-    putFilter = options["delta"] > delta
-    options = options[putFilter]
-else:
-    callFilter = options["delta"] < delta
-    options = options[callFilter]
+deltaFilter = options["delta"] < delta
+options = options[deltaFilter]
 priceFilter = (options["strike"] > 0.5 *
                currentPrice) & (options["strike"] < 1.5 * currentPrice)
 options = options[priceFilter]
