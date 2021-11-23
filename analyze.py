@@ -9,28 +9,12 @@ import tradier
 
 def run():
     st.subheader("Stock Analyzer")
-    col1, col2 = st.columns(2)
-    with col2:
-        end_date = datetime.date.today() - datetime.timedelta(days=1)
-        start_date = st.slider(
-            "Start Data?",
-            min_value=datetime.date(2010, 1, 1),
-            max_value=end_date,
-            value=end_date - datetime.timedelta(days=3*365),
-            format="MM/DD/YYYY",
-        )
-
-    with col1:
-        # Retrieving tickers data
-        # tl = helper.load_tickers()
-        # defaultTickerIndex = tl.index[tl["Symbol"] == "AAPL"][0]
-        # ickerSymbol = st.selectbox("Stock ticker", tl, index=int(defaultTickerIndex))
-        tickerSymbol = st.text_input(
-            "Stock ticker", value="AAPL", max_chars=None)
-        tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
-        if "shortName" not in tickerData.info:
-            st.write("Invalid ticker symbol... try another")
-            raise helper.StopExecution
+    tickerSymbol = st.text_input(
+        "Stock ticker", value="AAPL", max_chars=None)
+    tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
+    if "shortName" not in tickerData.info:
+        st.write("Invalid ticker symbol... try another")
+        raise helper.StopExecution
 
     # Ticker information
     col1, col2 = st.columns(2)
@@ -70,14 +54,38 @@ def run():
     # miscInfo = tickerData.info.keys()
     # st.info(f"Misc Info: {miscInfo}")
 
+    # picj an action and run
+    actions = [
+        {'title': 'Options Chain', 'function': chain},
+        {'title': 'Stock Trend', 'function': trend},
+    ]
+    action = st.selectbox("Action",
+                          actions,
+                          format_func=lambda action: action['title']
+                          )
+    # run the action
+    action['function'](tickerSymbol, currentPrice)
+
+
+def trend(tickerSymbol, currentPrice):
     # Ticker data
+    end_date = datetime.date.today() - datetime.timedelta(days=1)
+    start_date = st.slider(
+        "Start Data?",
+        min_value=datetime.date(2010, 1, 1),
+        max_value=end_date,
+        value=end_date - datetime.timedelta(days=3*365),
+        format="MM/DD/YYYY",
+    )
     st.subheader('Closing price trend')
     data = helper.load_data(tickerSymbol, start_date, end_date)
     helper.plot_data(data)
 
+
+def chain(tickerSymbol, currentPrice):
     # Options data
     st.header("**Options chain**")
-    exps = tickerData.options
+    exps = yf.Ticker(tickerSymbol).options
     col1, col2, col3 = st.columns(3)
     with col1:
         expDate = st.selectbox("Expiry Date", exps, index=3)

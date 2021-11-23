@@ -1,7 +1,8 @@
 import requests
 import pandas as pd
+import os
 
-API_KEY = '1P9ggGodGMtq7jZAGLZxs6Ad8N3M'
+API_KEY = os.environ.get('TRADIER_KEY')  # '1P9ggGodGMtq7jZAGLZxs6Ad8N3M'
 API_URL = "https://sandbox.tradier.com/v1/"
 HEADERS = {'Authorization': f'Bearer {API_KEY}', 'Accept': 'application/json'}
 target_url = API_URL + "markets/options/chains"
