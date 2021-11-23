@@ -1,5 +1,4 @@
 import requests
-from pprint import pprint
 import pandas as pd
 
 API_KEY = '1P9ggGodGMtq7jZAGLZxs6Ad8N3M'
@@ -26,6 +25,3 @@ def getOptions(ticker='AAPL',
                      'delta',
                      "openInterest",
                      ]])
-
-
-pprint(getOptions())

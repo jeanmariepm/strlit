@@ -7,6 +7,9 @@ from plotly import graph_objs as go
 from fbprophet import Prophet
 from fbprophet.plot import plot_plotly
 from py_vollib_vectorized import price_dataframe, get_all_greeks
+import util
+import logging
+logging.getLogger('fbprophet').setLevel(logging.WARNING)
 
 
 @st.cache
@@ -56,11 +59,12 @@ def plot_data(data):
     df_train = data[['Date', 'Close']]
     df_train = df_train.rename(columns={"Date": "ds", "Close": "y"})
     prophet = Prophet()
-    prophet.fit(df_train)
-    future = prophet.make_future_dataframe(periods=90)
-    forecast = prophet.predict(future)
-    fig1 = plot_plotly(prophet, forecast)
-    st.plotly_chart(fig1)
+    with util.suppress_stdout_stderr():
+        prophet.fit(df_train)
+        future = prophet.make_future_dataframe(periods=90)
+        forecast = prophet.predict(future)
+        fig1 = plot_plotly(prophet, forecast)
+        st.plotly_chart(fig1)
 
 
 def plot_raw_data(data):
