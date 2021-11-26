@@ -141,6 +141,8 @@ PyMeeus = "==0.5.11"
 Pympler = "==0.9"
 Send2Trash = "==1.8.0"
 psycopg2-binary = "*"
+sqlalchemy = "*"
+alembic = "*"
 
 [dev-packages]
 
