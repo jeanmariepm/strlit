@@ -1,2 +1,2 @@
 web: sh setup.sh && streamlit run app.py
-release: alembic upgrade head
+release: cd db && alembic upgrade head
