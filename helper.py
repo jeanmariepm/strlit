@@ -8,6 +8,7 @@ from fbprophet import Prophet
 from fbprophet.plot import plot_plotly
 from py_vollib_vectorized import price_dataframe, get_all_greeks
 import util
+from db import stock_sql
 import logging
 logging.getLogger('fbprophet').setLevel(logging.WARNING)
 
@@ -77,6 +78,10 @@ def plot_raw_data(data):
         title_text="Time Series data with Rangeslider", xaxis_rangeslider_visible=True
     )
     st.plotly_chart(fig)
+
+
+def findTicker(company):
+    return stock_sql.findTicker(company)
 
 
 class StopExecution(Exception):

@@ -13,8 +13,12 @@ def run():
         "Stock ticker", value="AAPL", max_chars=None)
     tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
     if "shortName" not in tickerData.info:
-        st.write("Invalid ticker symbol... try another")
-        raise helper.StopExecution
+        tickerSymbol = helper.findTicker(tickerSymbol)
+        if tickerSymbol:
+            tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
+        if "shortName" not in tickerData.info:
+            st.write("Invalid ticker symbol... try another")
+            raise helper.StopExecution
 
     # Ticker information
     col1, col2 = st.columns(2)
