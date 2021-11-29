@@ -4,6 +4,8 @@ from sqlalchemy import create_engine, text
 from pprint import pprint
 
 DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
 
 def start():
