@@ -2,43 +2,65 @@ import os
 import psycopg2
 from sqlalchemy import create_engine, text, schema, Table
 from sqlalchemy.orm import sessionmaker
-from db.models import Stock
+from db.models import Stock, Member
 from pprint import pprint
 import pandas as pd
 
-DATABASE_URL = os.environ.get('DATABASE_URL')
-if DATABASE_URL.startswith("postgres://"):
-    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
+class StockSql:
+    def __init__(self):
+        self.DATABASE_URL = os.environ.get('DATABASE_URL')
+        if self.DATABASE_URL.startswith("postgres://"):
+            self.DATABASE_URL = self.DATABASE_URL.replace(
+                "postgres://", "postgresql://", 1)
+        self.engine = create_engine(self.DATABASE_URL)
+        self.connection = self.engine.connect()
+        self.session = sessionmaker(bind=self.engine)(bind=self.engine)
+        return
 
-def findTicker(company):
-    engine = create_engine(DATABASE_URL)
-    conn = engine.connect()
-    Session = sessionmaker(bind=engine)
-    session = Session(bind=engine)
-    (ticker,) = session.query(Stock.symbol).filter(
-        Stock.company.like(f'%{company}%')).first()
-    return ticker
+    def findTicker(self, company):
+        try:
+            (ticker,) = self.session.query(Stock.symbol).filter(
+                Stock.company.ilike(f'%{company}%')).first()
+            return ticker
+        except:
+            pprint('DB ERROR or company not found')
+            return None
 
+    def fetchMember(self, username):
+        try:
+            member = self.session.query(Member).filter(
+                Member.username.ilike(f'%{username}%')).first()
+            return member
+        except Exception as ex:
+            pprint('DB ERROR or member not found', ex)
+            return None
 
-def load_symbols():
-    table = pd.read_html(
-        'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
-    mycols = table[0][['Symbol', 'Security']]
-    mycols = mycols.rename(
-        columns={"Symbol": "symbol", "Security": "company"})
-    mycolsDict = mycols.to_dict(orient='records')
-    engine = create_engine(DATABASE_URL)
-    conn = engine.connect()
-    Session = sessionmaker(bind=engine)
-    session = Session(bind=engine)
-    metadata = schema.MetaData(engine)
-    table = Table('stock', metadata, autoload=True)
-    conn.execute(table.insert(), mycolsDict)
-    session.commit()
-    session.close()
+    def register(self, username, password):
+        try:
+            member = Member(username=username, password=password)
+            self.session.add(member)
+            self.session.commit()
+            return member
+        except Exception as ex:
+            pprint('DB ERROR ', ex)
+            return None
+
+    def load_symbols(self):
+        table = pd.read_html(
+            'https://en.wikipedia.org/wiki/List_of_S%26P_500_companies')
+        mycols = table[0][['Symbol', 'Security']]
+        mycols = mycols.rename(
+            columns={"Symbol": "symbol", "Security": "company"})
+        mycolsDict = mycols.to_dict(orient='records')
+        self.startSession()
+        metadata = schema.MetaData(self.engine)
+        table = Table('stock', metadata, autoload=True)
+        self.connection.execute(table.insert(), mycolsDict)
+        self.session.commit()
 
 
 if __name__ == '__main__':
-    load_symbols()
-    pprint(findTicker('Nike'))
+    ss = StockSql()
+    ss.load_symbols()
+    pprint(ss.findTicker('Nike'))

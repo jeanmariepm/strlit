@@ -7,7 +7,7 @@ import helper
 import tradier
 
 
-def run():
+def run(user):
     st.subheader("Stock Analyzer")
     tickerSymbol = st.text_input(
         "Stock ticker", value="AAPL", max_chars=None)
@@ -15,10 +15,11 @@ def run():
     if "shortName" not in tickerData.info:
         tickerSymbol = helper.findTicker(tickerSymbol)
         if tickerSymbol:
+            st.write(tickerSymbol)
             tickerData = yf.Ticker(tickerSymbol)  # Get ticker data
-        if "shortName" not in tickerData.info:
-            st.write("Invalid ticker symbol... try another")
-            raise helper.StopExecution
+        else:
+            st.error("Invalid ticker symbol or company name... try another")
+            return
 
     # Ticker information
     col1, col2 = st.columns(2)
@@ -58,7 +59,7 @@ def run():
     # miscInfo = tickerData.info.keys()
     # st.info(f"Misc Info: {miscInfo}")
 
-    # picj an action and run
+    # pick an action and run
     actions = [
         {'title': 'Options Chain', 'function': chain},
         {'title': 'Stock Trend', 'function': trend},

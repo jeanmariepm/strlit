@@ -8,24 +8,15 @@ through an object oriented framework.
 import streamlit as st
 import analyze
 import screen
+import auth
 
 # Define the multipage class to manage the multiple apps in our program
 
 
 class MultiPage:
-    """Framework for combining multiple streamlit applications."""
 
     def __init__(self) -> None:
-        """Constructor class to generate a list which will store all our applications as an instance variable."""
         self.pages = []
-        st.sidebar.markdown(
-            """
-            **About**
-            - App source code <a href='https://github.com/jeanmariepm/strlit.git'>here </a>
-            - Built in `Python` using `streamlit`,`yfinance`, `plotly`, `pandas` and more
-            """,
-            unsafe_allow_html=True,
-        )
 
     def add_page(self, title, func) -> None:
         """Class Method to Add pages to the project
@@ -48,9 +39,20 @@ class MultiPage:
             self.pages,
             format_func=lambda page: page['title']
         )
+        st.sidebar.markdown(
+            """
+            **About**
+            - App source code <a href='https://github.com/jeanmariepm/strlit.git'>here </a>
+            - Built in `Python` using `streamlit`,`yfinance`, `apitrader`, `postgres` and more
+            """,
+            unsafe_allow_html=True,
+        )
 
         # run the app function
-        page['function']()
+        if page['function'].__module__ == 'auth':
+            st.session_state['user'] = page['function']()
+        else:
+            page['function'](st.session_state['user'])
 
 
 # Create an instance of the app
@@ -61,8 +63,11 @@ st.header("VIP Applications")
 
 
 # Add all your applications (pages) here
+pages.add_page("Login", auth.run)
 pages.add_page("Analyze Stock", analyze.run)
 pages.add_page("Screen Stocks", screen.run)
+if 'user' not in st.session_state:
+    st.session_state['user'] = None
 
 # The main app
 pages.run()
