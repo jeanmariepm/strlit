@@ -1,7 +1,11 @@
 import streamlit as st
-from db import stock_sql as sql
+import pandas as pd
+from db.stock_sql import StockSql
+
+SS = StockSql()
 
 
 def run(user):
     st.subheader(f"Stock Screener for {user.username}")
-    sql.start()
+    members = SS.listMembers()
+    st.write(members)

@@ -55,19 +55,20 @@ class MultiPage:
             page['function'](st.session_state['user'])
 
 
-# Create an instance of the app
-pages = MultiPage()
-
 # Title of the main page
 st.header("VIP Applications")
 
 
-# Add all your applications (pages) here
-pages.add_page("Login", auth.run)
-pages.add_page("Analyze Stock", analyze.run)
-pages.add_page("Screen Stocks", screen.run)
+# Create an instance of the app
+if 'pages' not in st.session_state:
+    pages = MultiPage()
+    pages.add_page("Login", auth.run)
+    pages.add_page("Analyze Stock", analyze.run)
+    pages.add_page("Screen Stocks", screen.run)
+    st.session_state['pages'] = pages
+
 if 'user' not in st.session_state:
     st.session_state['user'] = None
 
 # The main app
-pages.run()
+st.session_state['pages'].run()

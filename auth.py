@@ -1,3 +1,5 @@
+from os import write
+from numpy import dtype
 import streamlit as st
 from db.stock_sql import StockSql
 
@@ -16,7 +18,6 @@ def auth():
                           )
     # run the action
     user = action['function']()
-    print('ayth returning:',  user)
     return user
 
 
@@ -31,13 +32,15 @@ def login():
                     if user.is_su:
                         if st.checkbox("Check to edit user database"):
                             _superuser_mode()
-                    st.write('You are now logged in')
+                    else:
+                        st.write('You are now logged in')
                     return user
                 else:
                     st.error('Incorrect password')
                     return None
-        st.error('Invalid username')
-        return None
+        else:
+            st.error('Invalid username')
+            return None
 
 
 def register():
@@ -52,61 +55,32 @@ def register():
         return None
 
 
-def _list_users():
-    table_data = conn.execute(
-        "select username,password,su from users").fetchall()
-    if table_data:
-        table_data2 = list(zip(*table_data))
-        st.table(
-            {
-                "Username": (table_data2)[0],
-                "Password": table_data2[1],
-                "Superuser?": table_data2[2],
-            }
-        )
-    else:
-        st.write("No entries in authentication database")
+def _list_users(users):
+    st.write(users)
 
 
-def _edit_users():
-    userlist = [x[0]
-                for x in conn.execute("select username from users").fetchall()]
-    userlist.insert(0, "")
-    edit_user = st.selectbox("Select user", options=userlist)
-    if edit_user:
-        user_data = conn.execute(
-            "select username,password,su from users where username = ?", (
-                edit_user,)
-        ).fetchone()
-        _create_users(
-            conn=conn,
-            init_user=user_data[0],
-            init_pass=user_data[1],
-            init_super=user_data[2],
-        )
+def _edit_users(users):
+    usernames = ['<select>'] + users['username'].tolist()
+    edit_user = st.selectbox("Select user", usernames)
+    if edit_user != '<select>':
+        st.write(f'TBD {edit_user} updated')
 
 
-def _delete_users():
-    userlist = [x[0]
-                for x in conn.execute("select username from users").fetchall()]
-    userlist.insert(0, "")
-    del_user = st.selectbox("Select user", options=userlist)
-    if del_user:
-        if st.button(f"Press to remove {del_user}"):
-            with conn:
-                conn.execute(
-                    "delete from users where username = ?", (del_user,))
-                st.write(f"User {del_user} deleted")
+def _delete_users(users):
+    usernames = ['<select>'] + users['username'].tolist()
+    edit_user = st.selectbox("Select user", usernames)
+    if edit_user != '<select>':
+        st.write(f'TFD {edit_user} deleted')
 
 
 def _superuser_mode():
-    mode = st.radio("Select mode", ("View", "Create", "Edit", "Delete"))
+    members = SS.listMembers()
+    mode = st.radio("Select mode", ("View",  "Edit", "Delete"))
     {
         "View": _list_users,
-        "Create": _create_users,
         "Edit": _edit_users,
         "Delete": _delete_users,
-    }[mode]()
+    }[mode](members)
 
 
 def run():
