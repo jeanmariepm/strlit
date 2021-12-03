@@ -6,6 +6,4 @@ SS = StockSql()
 
 
 def run(user):
-    st.subheader(f"Stock Screener for {user.username}")
-    members = SS.listMembers()
-    st.write(members)
+    st.subheader(f"TBD Stock Screener for {user.username}")

@@ -39,7 +39,6 @@ class StockSql:
     def listMembers(self):
         try:
             members = pd.read_sql("SELECT * FROM member", self.connection)
-            pprint(members)
             return members
         except Exception as ex:
             pprint('DB ERROR or member not found', ex)
